@@ -93,10 +93,15 @@ EasyStar.js = function () {
     * Sets the collision grid that EasyStar uses.
     *
     * @param {Array} grid The collision grid that this EasyStar instance will read from.
+    * @param {Boolean} skipCostMap Skip calculating cost map (if you create/set your cost map later)
     * This should be a 2D Array of Numbers.
     **/
-    this.setGrid = function (grid) {
+    this.setGrid = function (grid, skipCostMap) {
         collisionGrid = grid;
+
+        if (skipCostMap) {
+            return;
+        }
 
         //Setup cost map
         for (var y = 0; y < collisionGrid.length; y++) {
@@ -106,6 +111,14 @@ EasyStar.js = function () {
                 }
             }
         }
+
+    };
+
+    /**
+    * Return the collision grid that EasyStar uses.
+    **/
+    this.getGrid = function () {
+        return collisionGrid;
     };
 
     /**
@@ -242,11 +255,12 @@ EasyStar.js = function () {
     * @param {Number} endY The Y position of the ending point.
     * @param {Function} callback A function that is called when your path
     * is found, or no path is found.
-    * @param {Boolean} priority If set to true, adds to front of queue
+    * @param {Number} priority Position in the queue to calculate
+    * @param {Boolean} allowMaxIterations Allow infinite iterations
     * @return {Number} A numeric, non-zero value which identifies the created instance. This value can be passed to cancelPath to cancel the path calculation.
     *
     **/
-    this.findPath = function (startX, startY, endX, endY, callback, priority) {
+    this.findPath = function (startX, startY, endX, endY, callback, priority, allowMaxIterations) {
         // Wraps the callback for sync vs async logic
         var callbackWrapper = function (result) {
             if (syncEnabled) {
@@ -280,19 +294,21 @@ EasyStar.js = function () {
             return;
         }
 
-        // End point is not an acceptable tile.
-        var endTile = collisionGrid[endY][endX];
-        var isAcceptable = false;
-        for (var i = 0; i < acceptableTiles.length; i++) {
-            if (endTile === acceptableTiles[i]) {
-                isAcceptable = true;
-                break;
+        if (!findNearestEnabled) {
+            // End point is not an acceptable tile.
+            var endTile = collisionGrid[endY][endX];
+            var isAcceptable = false;
+            for (var i = 0; i < acceptableTiles.length; i++) {
+                if (endTile === acceptableTiles[i]) {
+                    isAcceptable = true;
+                    break;
+                }
             }
-        }
 
-        if (isAcceptable === false) {
-            callbackWrapper(null);
-            return;
+            if (isAcceptable === false) {
+                callbackWrapper(null);
+                return;
+            }
         }
 
         // Create the instance
@@ -300,6 +316,7 @@ EasyStar.js = function () {
         instance.openList = new Heap(function (nodeA, nodeB) {
             return nodeA.bestGuessDistance() - nodeB.bestGuessDistance();
         });
+        instance.allowMaxIterations = allowMaxIterations || false;
         instance.iterations = 0;
         instance.isDoneCalculating = false;
         instance.nodeHash = {};
@@ -314,11 +331,13 @@ EasyStar.js = function () {
 
         var instanceId = nextInstanceId++;
         instances[instanceId] = instance;
-        if (typeof priority === 'number') {
+
+        if (typeof priority == 'number') {
             instanceQueue.splice(priority, 0, instanceId);
         } else {
             instanceQueue.push(instanceId);
         }
+
         return instanceId;
     };
 
@@ -360,24 +379,19 @@ EasyStar.js = function () {
 
             var instanceId = instanceQueue[0];
             var instance = instances[instanceId];
-
-
-
             if (typeof instance == 'undefined') {
                 // This instance was cancelled
                 instanceQueue.shift();
                 continue;
             }
-            
-            if (instance.iterations > 25000) {
+            if (!instance.allowMaxIterations && instance.iterations > 25000) {
                 //Big number we found; 1210759 Addition below
                 console.error("[ABE-INFO] Cancelling big iteration");
                 this.cancelPath(instanceId);
                 return;
 
             }
-            instance.iterations++;
-
+            instance.iterations++;            
             // Couldn't find a path.
             if (instance.openList.size() === 0) {
                 instance.callback(null);
