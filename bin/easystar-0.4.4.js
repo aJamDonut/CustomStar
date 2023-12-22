@@ -118,178 +118,174 @@ var EasyStar=
 **/
 var EasyStar={},Instance=__webpack_require__(1),Node=__webpack_require__(2),Heap=__webpack_require__(3);module.exports=EasyStar;var nextInstanceId=1;EasyStar.js=function(){var collisionGrid,iterationsSoFar,acceptableTiles,syncEnabled=!1,pointsToAvoid={},costMap={},pointsToCost={},directionalConditions={},allowCornerCutting=!0,instances={},instanceQueue=[],iterationsPerCalculation=Number.MAX_VALUE,diagonalsEnabled=!1,findNearestEnabled=!1;
 /**
-    * Sets the collision grid that EasyStar uses.
-    *
-    * @param {Array|Number} tiles An array of numbers that represent
-    * which tiles in your grid should be considered
-    * acceptable, or "walkable".
-    **/
+  * Sets the collision grid that EasyStar uses.
+  *
+  * @param {Array|Number} tiles An array of numbers that represent
+  * which tiles in your grid should be considered
+  * acceptable, or "walkable".
+  **/
 this.setAcceptableTiles=function(tiles){tiles instanceof Array?
 // Array
 acceptableTiles=tiles:!isNaN(parseFloat(tiles))&&isFinite(tiles)&&(
 // Number
 acceptableTiles=[tiles])},
 /**
-    * Enables sync mode for this EasyStar instance..
-    * if you're into that sort of thing.
-    **/
+  * Enables sync mode for this EasyStar instance..
+  * if you're into that sort of thing.
+  **/
 this.enableSync=function(){syncEnabled=!0},
 /**
-    * Disables sync mode for this EasyStar instance.
-    **/
+  * Disables sync mode for this EasyStar instance.
+  **/
 this.disableSync=function(){syncEnabled=!1},
 /**
-     * Enable diagonal pathfinding.
-     */
-this.enableDiagonals=function(){diagonalsEnabled=!0}
+   * Enable diagonal pathfinding.
+   */
+this.enableDiagonals=function(){diagonalsEnabled=!0},
 /**
-     * Enable finding nearest.
-     */,this.enableFindNearest=function(){findNearestEnabled=!0}
+   * Enable finding nearest.
+   */
+this.enableFindNearest=function(){findNearestEnabled=!0},
 /**
-     * Disable diagonal pathfinding.
-     */,this.disableDiagonals=function(){diagonalsEnabled=!1}
+   * Disable diagonal pathfinding.
+   */
+this.disableDiagonals=function(){diagonalsEnabled=!1},
 /**
-    * Sets the collision grid that EasyStar uses.
-    *
-    * @param {Array} grid The collision grid that this EasyStar instance will read from.
-    * @param {Boolean} skipCostMap Skip calculating cost map (if you create/set your cost map later)
-    * This should be a 2D Array of Numbers.
-    **/,this.setGrid=function(grid,skipCostMap){if(collisionGrid=grid,!skipCostMap)
-//Setup cost map
+  * Sets the collision grid that EasyStar uses.
+  *
+  * @param {Array} grid The collision grid that this EasyStar instance will read from.
+  * @param {Boolean} skipCostMap Skip calculating cost map (if you create/set your cost map later)
+  * This should be a 2D Array of Numbers.
+  **/
+this.setGrid=function(grid,skipCostMap){if(collisionGrid=grid,!skipCostMap)//Setup cost map
 for(var y=0;y<collisionGrid.length;y++)for(var x=0;x<collisionGrid[0].length;x++)costMap[collisionGrid[y][x]]||(costMap[collisionGrid[y][x]]=1)},
 /**
-    * Return the collision grid that EasyStar uses.
-    **/
+  * Return the collision grid that EasyStar uses.
+  **/
 this.getGrid=function(){return collisionGrid},
 /**
-    * Sets the tile cost for a particular tile type.
-    *
-    * @param {Number} The tile type to set the cost for.
-    * @param {Number} The multiplicative cost associated with the given tile.
-    **/
+  * Sets the tile cost for a particular tile type.
+  *
+  * @param {Number} The tile type to set the cost for.
+  * @param {Number} The multiplicative cost associated with the given tile.
+  **/
 this.setTileCost=function(tileType,cost){costMap[tileType]=cost},
 /**
-    * Sets the an additional cost for a particular point.
-    * Overrides the cost from setTileCost.
-    *
-    * @param {Number} x The x value of the point to cost.
-    * @param {Number} y The y value of the point to cost.
-    * @param {Number} The multiplicative cost associated with the given point.
-    **/
+  * Sets the an additional cost for a particular point.
+  * Overrides the cost from setTileCost.
+  *
+  * @param {Number} x The x value of the point to cost.
+  * @param {Number} y The y value of the point to cost.
+  * @param {Number} The multiplicative cost associated with the given point.
+  **/
 this.setAdditionalPointCost=function(x,y,cost){void 0===pointsToCost[y]&&(pointsToCost[y]={}),pointsToCost[y][x]=cost},
 /**
-    * Remove the additional cost for a particular point.
-    *
-    * @param {Number} x The x value of the point to stop costing.
-    * @param {Number} y The y value of the point to stop costing.
-    **/
-this.removeAdditionalPointCost=function(x,y){void 0!==pointsToCost[y]&&delete pointsToCost[y][x]}
+  * Remove the additional cost for a particular point.
+  *
+  * @param {Number} x The x value of the point to stop costing.
+  * @param {Number} y The y value of the point to stop costing.
+  **/
+this.removeAdditionalPointCost=function(x,y){void 0!==pointsToCost[y]&&delete pointsToCost[y][x]},
 /**
-    * Remove all additional point costs.
-    **/,this.removeAllAdditionalPointCosts=function(){pointsToCost={}}
+  * Remove all additional point costs.
+  **/
+this.removeAllAdditionalPointCosts=function(){pointsToCost={}},
 /**
-    * Sets a directional condition on a tile
-    *
-    * @param {Number} x The x value of the point.
-    * @param {Number} y The y value of the point.
-    * @param {Array.<String>} allowedDirections A list of all the allowed directions that can access
-    * the tile.
-    **/,this.setDirectionalCondition=function(x,y,allowedDirections){void 0===directionalConditions[y]&&(directionalConditions[y]={}),directionalConditions[y][x]=allowedDirections},
+  * Sets a directional condition on a tile
+  *
+  * @param {Number} x The x value of the point.
+  * @param {Number} y The y value of the point.
+  * @param {Array.<String>} allowedDirections A list of all the allowed directions that can access
+  * the tile.
+  **/
+this.setDirectionalCondition=function(x,y,allowedDirections){void 0===directionalConditions[y]&&(directionalConditions[y]={}),directionalConditions[y][x]=allowedDirections},
 /**
-    * Remove all directional conditions
-    **/
+  * Remove all directional conditions
+  **/
 this.removeAllDirectionalConditions=function(){directionalConditions={}},
 /**
-    * Sets the number of search iterations per calculation.
-    * A lower number provides a slower result, but more practical if you
-    * have a large tile-map and don't want to block your thread while
-    * finding a path.
-    *
-    * @param {Number} iterations The number of searches to prefrom per calculate() call.
-    **/
+  * Sets the number of search iterations per calculation.
+  * A lower number provides a slower result, but more practical if you
+  * have a large tile-map and don't want to block your thread while
+  * finding a path.
+  *
+  * @param {Number} iterations The number of searches to prefrom per calculate() call.
+  **/
 this.setIterationsPerCalculation=function(iterations){iterationsPerCalculation=iterations},
 /**
-    * Avoid a particular point on the grid,
-    * regardless of whether or not it is an acceptable tile.
-    *
-    * @param {Number} x The x value of the point to avoid.
-    * @param {Number} y The y value of the point to avoid.
-    **/
+  * Avoid a particular point on the grid,
+  * regardless of whether or not it is an acceptable tile.
+  *
+  * @param {Number} x The x value of the point to avoid.
+  * @param {Number} y The y value of the point to avoid.
+  **/
 this.avoidAdditionalPoint=function(x,y){void 0===pointsToAvoid[y]&&(pointsToAvoid[y]={}),pointsToAvoid[y][x]=1},
 /**
-    * Stop avoiding a particular point on the grid.
-    *
-    * @param {Number} x The x value of the point to stop avoiding.
-    * @param {Number} y The y value of the point to stop avoiding.
-    **/
+  * Stop avoiding a particular point on the grid.
+  *
+  * @param {Number} x The x value of the point to stop avoiding.
+  * @param {Number} y The y value of the point to stop avoiding.
+  **/
 this.stopAvoidingAdditionalPoint=function(x,y){void 0!==pointsToAvoid[y]&&delete pointsToAvoid[y][x]},
 /**
-    * Enables corner cutting in diagonal movement.
-    **/
+  * Enables corner cutting in diagonal movement.
+  **/
 this.enableCornerCutting=function(){allowCornerCutting=!0},
 /**
-    * Disables corner cutting in diagonal movement.
-    **/
+  * Disables corner cutting in diagonal movement.
+  **/
 this.disableCornerCutting=function(){allowCornerCutting=!1},
 /**
-    * Stop avoiding all additional points on the grid.
-    **/
+  * Stop avoiding all additional points on the grid.
+  **/
 this.stopAvoidingAllAdditionalPoints=function(){pointsToAvoid={}},
 /**
-    * Find a path.
-    *
-    * @param {Number} startX The X position of the starting point.
-    * @param {Number} startY The Y position of the starting point.
-    * @param {Number} endX The X position of the ending point.
-    * @param {Number} endY The Y position of the ending point.
-    * @param {Function} callback A function that is called when your path
-    * is found, or no path is found.
-    * @param {Number} priority Position in the queue to calculate
-    * @param {Boolean} allowMaxIterations Allow infinite iterations
-    * @return {Number} A numeric, non-zero value which identifies the created instance. This value can be passed to cancelPath to cancel the path calculation.
-    *
-    **/
+  * Find a path.
+  *
+  * @param {Number} startX The X position of the starting point.
+  * @param {Number} startY The Y position of the starting point.
+  * @param {Number} endX The X position of the ending point.
+  * @param {Number} endY The Y position of the ending point.
+  * @param {Function} callback A function that is called when your path
+  * is found, or no path is found.
+  * @param {Number} priority Position in the queue to calculate
+  * @param {Boolean} allowMaxIterations Allow infinite iterations
+  * @return {Number} A numeric, non-zero value which identifies the created instance. This value can be passed to cancelPath to cancel the path calculation.
+  *
+  **/
 this.findPath=function(startX,startY,endX,endY,callback,priority,allowMaxIterations){
 // Wraps the callback for sync vs async logic
-var callbackWrapper=function(result){syncEnabled?callback(result):setTimeout((function(){callback(result)}))}
-// No acceptable tiles were set;
-if(void 0===acceptableTiles)throw new Error("You can't set a path without first calling setAcceptableTiles() on EasyStar.");
-// No grid was set
-if(void 0===collisionGrid)throw new Error("You can't set a path without first calling setGrid() on EasyStar.");
-// Start or endpoint outside of scope.
-if(startX<0||startY<0||endX<0||endY<0||startX>collisionGrid[0].length-1||startY>collisionGrid.length-1||endX>collisionGrid[0].length-1||endY>collisionGrid.length-1)throw new Error("Your start or end point is outside the scope of your grid.");
-// Start and end are the same tile.
+var callbackWrapper=function(result){syncEnabled?callback(result):setTimeout((function(){callback(result)}))};// No acceptable tiles were set
+if(void 0===acceptableTiles)throw new Error("You can't set a path without first calling setAcceptableTiles() on EasyStar.");// No grid was set
+if(void 0===collisionGrid)throw new Error("You can't set a path without first calling setGrid() on EasyStar.");// Start or endpoint outside of scope.
+if(startX<0||startY<0||endX<0||endY<0||startX>collisionGrid[0].length-1||startY>collisionGrid.length-1||endX>collisionGrid[0].length-1||endY>collisionGrid.length-1)throw new Error("Your start or end point is outside the scope of your grid.");// Start and end are the same tile.
 if(startX!==endX||startY!==endY){if(!findNearestEnabled){for(
 // End point is not an acceptable tile.
-var endTile=collisionGrid[endY][endX],isAcceptable=!1,i=0;i<acceptableTiles.length;i++)if(endTile===acceptableTiles[i]){isAcceptable=!0;break}if(!1===isAcceptable)return void callbackWrapper(null)}
-// Create the instance
+var endTile=collisionGrid[endY][endX],isAcceptable=!1,i=0;i<acceptableTiles.length;i++)if(endTile===acceptableTiles[i]){isAcceptable=!0;break}if(!1===isAcceptable)return void callbackWrapper(null)}// Create the instance
 var instance=new Instance;instance.openList=new Heap((function(nodeA,nodeB){return nodeA.bestGuessDistance()-nodeB.bestGuessDistance()})),instance.allowMaxIterations=allowMaxIterations||!1,instance.iterations=0,instance.isDoneCalculating=!1,instance.nodeHash={},instance.startX=startX,instance.startY=startY,instance.endX=endX,instance.endY=endY,instance.callback=callbackWrapper,instance.openList.push(coordinateToNode(instance,instance.startX,instance.startY,null,1));var instanceId=nextInstanceId++;return instances[instanceId]=instance,"number"==typeof priority?instanceQueue.splice(priority,0,instanceId):instanceQueue.push(instanceId),instanceId}callbackWrapper([])},
 /**
-     * Cancel a path calculation.
-     *
-     * @param {Number} instanceId The instance ID of the path being calculated
-     * @return {Boolean} True if an instance was found and cancelled.
-     *
-     **/
+   * Cancel a path calculation.
+   *
+   * @param {Number} instanceId The instance ID of the path being calculated
+   * @return {Boolean} True if an instance was found and cancelled.
+   *
+   **/
 this.cancelPath=function(instanceId){return instanceId in instances&&(delete instances[instanceId],!0)},
 /**
-    * This method steps through the A* Algorithm in an attempt to
-    * find your path(s). It will search 4-8 tiles (depending on diagonals) for every calculation.
-    * You can change the number of calculations done in a call by using
-    * easystar.setIteratonsPerCalculation().
-    **/
+  * This method steps through the A* Algorithm in an attempt to
+  * find your path(s). It will search 4-8 tiles (depending on diagonals) for every calculation.
+  * You can change the number of calculations done in a call by using
+  * easystar.setIteratonsPerCalculation().
+  **/
 this.calculate=function(){if(0!==instanceQueue.length&&void 0!==collisionGrid&&void 0!==acceptableTiles)for(iterationsSoFar=0;iterationsSoFar<iterationsPerCalculation;iterationsSoFar++){if(0===instanceQueue.length)return;syncEnabled&&(
 // If this is a sync instance, we want to make sure that it calculates synchronously.
 iterationsSoFar=0);var instanceId=instanceQueue[0],instance=instances[instanceId];if(void 0!==instance){if(!instance.allowMaxIterations&&instance.iterations>25e3)
 //Big number we found; 1210759 Addition below
-return console.error("[ABE-INFO] Cancelling big iteration"),void this.cancelPath(instanceId);
-// Couldn't find a path.
-if(instance.iterations++,0!==instance.openList.size()){var searchNode=instance.openList.pop();
-// Handles the case where we have found the destination
+return console.error("[ABE-INFO] Cancelling big iteration"),void this.cancelPath(instanceId);// Couldn't find a path.
+if(instance.iterations++,0!==instance.openList.size()){var searchNode=instance.openList.pop();// Handles the case where we have found the destination
 if(isDestination(instance,searchNode.x,searchNode.y)){var path=[];path.push({x:searchNode.x,y:searchNode.y});for(var parent=searchNode.parent;null!=parent;)path.push({x:parent.x,y:parent.y}),parent=parent.parent;path.reverse();var ip=path;instance.callback(ip),delete instances[instanceId],instanceQueue.shift()}else searchNode.list=0,searchNode.y>0&&checkAdjacentNode(instance,searchNode,0,-1,1*getTileCost(searchNode.x,searchNode.y-1),!1),searchNode.x<collisionGrid[0].length-1&&checkAdjacentNode(instance,searchNode,1,0,1*getTileCost(searchNode.x+1,searchNode.y),!1),searchNode.y<collisionGrid.length-1&&checkAdjacentNode(instance,searchNode,0,1,1*getTileCost(searchNode.x,searchNode.y+1),!1),searchNode.x>0&&checkAdjacentNode(instance,searchNode,-1,0,1*getTileCost(searchNode.x-1,searchNode.y),!1),diagonalsEnabled&&(searchNode.x>0&&searchNode.y>0&&(allowCornerCutting||isTileWalkable(collisionGrid,acceptableTiles,searchNode.x,searchNode.y-1,searchNode)&&isTileWalkable(collisionGrid,acceptableTiles,searchNode.x-1,searchNode.y,searchNode))&&checkAdjacentNode(instance,searchNode,-1,-1,1.4*getTileCost(searchNode.x-1,searchNode.y-1),"tl"),searchNode.x<collisionGrid[0].length-1&&searchNode.y<collisionGrid.length-1&&(allowCornerCutting||isTileWalkable(collisionGrid,acceptableTiles,searchNode.x,searchNode.y+1,searchNode)&&isTileWalkable(collisionGrid,acceptableTiles,searchNode.x+1,searchNode.y,searchNode))&&checkAdjacentNode(instance,searchNode,1,1,1.4*getTileCost(searchNode.x+1,searchNode.y+1),"br"),searchNode.x<collisionGrid[0].length-1&&searchNode.y>0&&(allowCornerCutting||isTileWalkable(collisionGrid,acceptableTiles,searchNode.x,searchNode.y-1,searchNode)&&isTileWalkable(collisionGrid,acceptableTiles,searchNode.x+1,searchNode.y,searchNode))&&checkAdjacentNode(instance,searchNode,1,-1,1.4*getTileCost(searchNode.x+1,searchNode.y-1),"tr"),searchNode.x>0&&searchNode.y<collisionGrid.length-1&&(allowCornerCutting||isTileWalkable(collisionGrid,acceptableTiles,searchNode.x,searchNode.y+1,searchNode)&&isTileWalkable(collisionGrid,acceptableTiles,searchNode.x-1,searchNode.y,searchNode))&&checkAdjacentNode(instance,searchNode,-1,1,1.4*getTileCost(searchNode.x-1,searchNode.y+1),"bl"))}else instance.callback(null),delete instances[instanceId],instanceQueue.shift()}else
 // This instance was cancelled
-instanceQueue.shift()}};
-// Private methods follow
+instanceQueue.shift()}};// Private methods follow
 var checkAdjacentNode=function(instance,searchNode,x,y,cost,diagonal){var adjacentCoordinateX=searchNode.x+x,adjacentCoordinateY=searchNode.y+y;if(void 0!==pointsToAvoid[adjacentCoordinateY]&&void 0!==pointsToAvoid[adjacentCoordinateY][adjacentCoordinateX]||!isTileWalkable(collisionGrid,acceptableTiles,adjacentCoordinateX,adjacentCoordinateY,searchNode))
 //This is not a walkable tile
 !diagonal&&findNearestEnabled&&isDestination(instance,adjacentCoordinateX,adjacentCoordinateY)&&
@@ -297,14 +293,11 @@ var checkAdjacentNode=function(instance,searchNode,x,y,cost,diagonal){var adjace
 //And so we will update the endX and endY to this position.
 setNodeAsDestination(instance,searchNode);else{
 //This is a walkable tile
-var node=coordinateToNode(instance,adjacentCoordinateX,adjacentCoordinateY,searchNode,cost);void 0===node.list?(node.list=1,instance.openList.push(node)):searchNode.costSoFar+cost<node.costSoFar&&(node.costSoFar=searchNode.costSoFar+cost,node.parent=searchNode,instance.openList.updateItem(node))}},isTileWalkable=function(collisionGrid,acceptableTiles,x,y,sourceNode){var directionalCondition=directionalConditions[y]&&directionalConditions[y][x];if(directionalCondition){var direction=calculateDirection(sourceNode.x-x,sourceNode.y-y);if(!function(){for(var i=0;i<directionalCondition.length;i++)if(directionalCondition[i]===direction)return!0;return!1}())return!1}for(var i=0;i<acceptableTiles.length;i++)if(collisionGrid[y][x]===acceptableTiles[i])return!0;return!1},calculateDirection=function(diffX,diffY){if(0===diffX&&-1===diffY)return EasyStar.TOP;if(1===diffX&&-1===diffY)return EasyStar.TOP_RIGHT;if(1===diffX&&0===diffY)return EasyStar.RIGHT;if(1===diffX&&1===diffY)return EasyStar.BOTTOM_RIGHT;if(0===diffX&&1===diffY)return EasyStar.BOTTOM;if(-1===diffX&&1===diffY)return EasyStar.BOTTOM_LEFT;if(-1===diffX&&0===diffY)return EasyStar.LEFT;if(-1===diffX&&-1===diffY)return EasyStar.TOP_LEFT;throw new Error("These differences are not valid: "+diffX+", "+diffY)},getTileCost=function(x,y){return pointsToCost[y]&&pointsToCost[y][x]||costMap[collisionGrid[y][x]]},coordinateToNode=function(instance,x,y,parent,cost){if(void 0!==instance.nodeHash[y]){if(void 0!==instance.nodeHash[y][x])return instance.nodeHash[y][x]}else instance.nodeHash[y]={};var simpleDistanceToTarget=getDistance(x,y,instance.endX,instance.endY);if(null!==parent)var costSoFar=parent.costSoFar+cost;else costSoFar=0;var node=new Node(parent,x,y,costSoFar,simpleDistanceToTarget);return instance.nodeHash[y][x]=node,node},getDistance=function(x1,y1,x2,y2){
+var node=coordinateToNode(instance,adjacentCoordinateX,adjacentCoordinateY,searchNode,cost);void 0===node.list?(node.list=1,instance.openList.push(node)):searchNode.costSoFar+cost<node.costSoFar&&(node.costSoFar=searchNode.costSoFar+cost,node.parent=searchNode,instance.openList.updateItem(node))}},isTileWalkable=function(collisionGrid,acceptableTiles,x,y,sourceNode){if(pointsToAvoid[y]&&pointsToAvoid[y][x])return!1;var directionalCondition=directionalConditions[y]&&directionalConditions[y][x];if(directionalCondition){var direction=calculateDirection(sourceNode.x-x,sourceNode.y-y);if(!function(){for(var i=0;i<directionalCondition.length;i++)if(directionalCondition[i]===direction)return!0;return!1}())return!1}for(var i=0;i<acceptableTiles.length;i++)if(collisionGrid[y][x]===acceptableTiles[i])return!0;return!1},calculateDirection=function(diffX,diffY){if(0===diffX&&-1===diffY)return EasyStar.TOP;if(1===diffX&&-1===diffY)return EasyStar.TOP_RIGHT;if(1===diffX&&0===diffY)return EasyStar.RIGHT;if(1===diffX&&1===diffY)return EasyStar.BOTTOM_RIGHT;if(0===diffX&&1===diffY)return EasyStar.BOTTOM;if(-1===diffX&&1===diffY)return EasyStar.BOTTOM_LEFT;if(-1===diffX&&0===diffY)return EasyStar.LEFT;if(-1===diffX&&-1===diffY)return EasyStar.TOP_LEFT;throw new Error("These differences are not valid: "+diffX+", "+diffY)},getTileCost=function(x,y){return pointsToCost[y]&&pointsToCost[y][x]||costMap[collisionGrid[y][x]]},coordinateToNode=function(instance,x,y,parent,cost){if(void 0!==instance.nodeHash[y]){if(void 0!==instance.nodeHash[y][x])return instance.nodeHash[y][x]}else instance.nodeHash[y]={};var simpleDistanceToTarget=getDistance(x,y,instance.endX,instance.endY);if(null!==parent)var costSoFar=parent.costSoFar+cost;else costSoFar=0;var node=new Node(parent,x,y,costSoFar,simpleDistanceToTarget);return instance.nodeHash[y][x]=node,node},getDistance=function(x1,y1,x2,y2){
 // Octile distance
-var dx,dy;return diagonalsEnabled?(dx=Math.abs(x1-x2))<(dy=Math.abs(y1-y2))?1.4*dx+dy:1.4*dy+dx:(dx=Math.abs(x1-x2))+(dy=Math.abs(y1-y2))},isDestination=function(instance,x,y){return instance.endX===x&&instance.endY===y},setNodeAsDestination=function(instance,searchNode){instance.endX=searchNode.x,instance.endY=searchNode.y,
-//Push this node back in so that when it's popped next time it's seen as the end.
-instance.openList.push(searchNode)};
-// Helpers
-},EasyStar.TOP="TOP",EasyStar.TOP_RIGHT="TOP_RIGHT",EasyStar.RIGHT="RIGHT",EasyStar.BOTTOM_RIGHT="BOTTOM_RIGHT",EasyStar.BOTTOM="BOTTOM",EasyStar.BOTTOM_LEFT="BOTTOM_LEFT",EasyStar.LEFT="LEFT",EasyStar.TOP_LEFT="TOP_LEFT"
-/***/},
+var dx,dy;return diagonalsEnabled?(dx=Math.abs(x1-x2))<(dy=Math.abs(y1-y2))?1.4*dx*(dy-dx):1.4*dy*(dx-dy):(dx=Math.abs(x1-x2))+(dy=Math.abs(y1-y2))},isDestination=function(instance,x,y){return instance.endX===x&&instance.endY===y},setNodeAsDestination=function(instance,searchNode){instance.endX=searchNode.x,instance.endY=searchNode.y,//Push this node back in so that when it's popped next time it's seen as the end.
+instance.openList.push(searchNode)};// Helpers
+},EasyStar.TOP="TOP",EasyStar.TOP_RIGHT="TOP_RIGHT",EasyStar.RIGHT="RIGHT",EasyStar.BOTTOM_RIGHT="BOTTOM_RIGHT",EasyStar.BOTTOM="BOTTOM",EasyStar.BOTTOM_LEFT="BOTTOM_LEFT",EasyStar.LEFT="LEFT",EasyStar.TOP_LEFT="TOP_LEFT"},
 /* 1 */
 /***/function(module,exports){
 /**
@@ -325,8 +318,8 @@ module.exports=function(){this.pointsToAvoid={},this.startX,this.callback,this.s
 **/
 module.exports=function(parent,x,y,costSoFar,simpleDistanceToTarget){this.parent=parent,this.x=x,this.y=y,this.costSoFar=costSoFar,this.simpleDistanceToTarget=simpleDistanceToTarget,
 /**
-    * @return {Number} Best guess distance of a cost using this node.
-    **/
+  * @return {Number} Best guess distance of a cost using this node.
+  **/
 this.bestGuessDistance=function(){return this.costSoFar+this.simpleDistanceToTarget}};
 /***/},
 /* 3 */
