@@ -587,9 +587,9 @@ EasyStar.js = function () {
             var dx = Math.abs(x1 - x2);
             var dy = Math.abs(y1 - y2);
             if (dx < dy) {
-                return DIAGONAL_COST * dx + dy;
+                return dx * DIAGONAL_COST * (dy - dx);
             } else {
-                return DIAGONAL_COST * dy + dx;
+                return dy * DIAGONAL_COST * (dx - dy);
             }
         } else {
             // Manhattan distance
