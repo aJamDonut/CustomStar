@@ -377,6 +377,8 @@ EasyStar.js = function () {
                 iterationsSoFar = 0;
             }
 
+
+
             var instanceId = instanceQueue[0];
             var instance = instances[instanceId];
             if (typeof instance == 'undefined') {
@@ -384,6 +386,16 @@ EasyStar.js = function () {
                 instanceQueue.shift();
                 continue;
             }
+
+            if(instance.iterations > 25000) {
+                //Big number we found; 1210759 Addition below
+                console.error("[ABE-INFO] Cancelling big iteration");
+                this.cancelPath(instanceId);
+                return;
+              
+            }
+            instance.iterations++;
+            
             if (!instance.allowMaxIterations && instance.iterations > 25000) {
                 //Big number we found; 1210759 Addition below
                 console.error("[ABE-INFO] Cancelling big iteration");
@@ -518,9 +530,8 @@ EasyStar.js = function () {
 
     // Helpers
     var isTileWalkable = function (collisionGrid, acceptableTiles, x, y, sourceNode) {
-        if (pointsToAvoid[y] && pointsToAvoid[y][x]) {
-            return false;
-        }
+        
+        
         var directionalCondition = directionalConditions[y] && directionalConditions[y][x];
         if (directionalCondition) {
             var direction = calculateDirection(sourceNode.x - x, sourceNode.y - y)
